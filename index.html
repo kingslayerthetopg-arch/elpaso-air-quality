@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>El Paso Air Quality</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+#aqi-value { font-size: 64px; font-weight: bold; }
+#aqi-label { font-size: 24px; margin-top: 10px; }
+#last-updated { font-size: 14px; margin-top: 20px; color: #666; }
+</style>
+</head>
+<body>
+<h1>El Paso Air Quality</h1>
+<div id="aqi-value">--</div>
+<div id="aqi-label"></div>
+<div id="last-updated"></div>
+<script>
+function fetchAQI() {
+ fetch('https://api.waqi.info/feed/el%20paso/?token=demo')
+  .then(response => response.json())
+  .then(data => {
+     var aqi = data.data.aqi;
+     var category = '';
+     if (aqi <= 50) category = 'Good';
+     else if (aqi <= 100) category = 'Moderate';
+     else if (aqi <= 150) category = 'Unhealthy for Sensitive Groups';
+     else if (aqi <= 200) category = 'Unhealthy';
+     else if (aqi <= 300) category = 'Very Unhealthy';
+     else category = 'Hazardous';
+     document.getElementById('aqi-value').textContent = aqi;
+     document.getElementById('aqi-label').textContent = category;
+     var now = new Date();
+     document.getElementById('last-updated').textContent = 'Last updated: ' + now.toLocaleString();
+  })
+  .catch(err => {
+    document.getElementById('aqi-value').textContent = 'N/A';
+    document.getElementById('aqi-label').textContent = 'Error fetching data';
+  });
+}
+fetchAQI();
+setInterval(fetchAQI, 15 * 60 * 1000);
+</script>
+</body>
+</html>
