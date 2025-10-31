@@ -2,41 +2,149 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>El Paso Air Quality</title>
+<title>El Paso Air Quality Monitor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
-#aqi-value { font-size: 64px; font-weight: bold; }
-#aqi-label { font-size: 24px; margin-top: 10px; }
-#last-updated { font-size: 14px; margin-top: 20px; color: #666; }
+:root {
+ --bg: #f9fafb;
+ --card: #ffffff;
+ --primary: #1d4ed8;
+ --accent: #3b82f6;
+ --text: #1e293b;
+ --subtext: #64748b;
+ --radius: 12px;
+ --font: 'Inter', 'Segoe UI', sans-serif;
+}
+* {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+}
+body {
+ background: var(--bg);
+ font-family: var(--font);
+ color: var(--text);
+ text-align: center;
+ padding: 2rem;
+}
+header {
+ margin-bottom: 2rem;
+}
+header h1 {
+ color: var(--primary);
+ font-size: 2.5rem;
+ font-weight: 700;
+}
+header p {
+ color: var(--subtext);
+ font-size: 1rem;
+}
+#aqi-card {
+ background: var(--card);
+ border-radius: var(--radius);
+ box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+ padding: 2rem;
+ max-width: 400px;
+ margin: auto;
+ transition: background 0.3s ease;
+}
+#aqi-value {
+ font-size: 5rem;
+ font-weight: 800;
+}
+#aqi-label {
+ font-size: 1.25rem;
+ margin-top: 0.5rem;
+}
+#last-updated {
+ font-size: 0.875rem;
+ color: var(--subtext);
+ margin-top: 1rem;
+}
+#alert {
+ display: none;
+ padding: 1rem;
+ margin-top: 1rem;
+ border-radius: var(--radius);
+}
+footer {
+ margin-top: 3rem;
+ color: var(--subtext);
+ font-size: 0.875rem;
+}
+footer a {
+ color: var(--accent);
+ text-decoration: none;
+}
+@media (max-width: 600px) {
+ body { padding: 1rem; }
+ header h1 { font-size: 1.75rem; }
+ #aqi-value { font-size: 3.5rem; }
+ #aqi-card { padding: 1.5rem; }
+}
 </style>
 </head>
 <body>
-<h1>El Paso Air Quality</h1>
-<div id="aqi-value">--</div>
-<div id="aqi-label"></div>
-<div id="last-updated"></div>
+<header>
+  <h1>El Paso Air Quality Monitor</h1>
+  <p>Real‑time AQI updates</p>
+</header>
+<main role="main" aria-live="polite">
+  <div id="aqi-card">
+    <div id="aqi-value">--</div>
+    <div id="aqi-label"></div>
+    <div id="last-updated"></div>
+  </div>
+  <div id="alert"></div>
+</main>
+<footer>
+  Data source: <a href="https://waqi.info/" target="_blank">WAQI</a><br>
+  © 2025 ClearAir El Paso Project
+</footer>
 <script>
+function showAlert(msg,color) {
+  const alertDiv = document.getElementById('alert');
+  alertDiv.textContent = msg;
+  alertDiv.style.display = 'block';
+  alertDiv.style.background = color;
+}
+function hideAlert() {
+  document.getElementById('alert').style.display = 'none';
+}
 function fetchAQI() {
  fetch('https://api.waqi.info/feed/el%20paso/?token=demo')
   .then(response => response.json())
   .then(data => {
-     var aqi = data.data.aqi;
-     var category = '';
-     if (aqi <= 50) category = 'Good';
-     else if (aqi <= 100) category = 'Moderate';
-     else if (aqi <= 150) category = 'Unhealthy for Sensitive Groups';
-     else if (aqi <= 200) category = 'Unhealthy';
-     else if (aqi <= 300) category = 'Very Unhealthy';
-     else category = 'Hazardous';
-     document.getElementById('aqi-value').textContent = aqi;
-     document.getElementById('aqi-label').textContent = category;
-     var now = new Date();
-     document.getElementById('last-updated').textContent = 'Last updated: ' + now.toLocaleString();
+    var aqi = data.data.aqi;
+    var category = '';
+    if (aqi <= 50) category = 'Good';
+    else if (aqi <= 100) category = 'Moderate';
+    else if (aqi <= 150) category = 'Unhealthy for Sensitive Groups';
+    else if (aqi <= 200) category = 'Unhealthy';
+    else if (aqi <= 300) category = 'Very Unhealthy';
+    else category = 'Hazardous';
+    document.getElementById('aqi-value').textContent = aqi;
+    document.getElementById('aqi-label').textContent = category;
+    var now = new Date();
+    document.getElementById('last-updated').textContent = 'Last updated: ' + now.toLocaleString();
+    // color code card
+    const card = document.getElementById('aqi-card');
+    if (aqi <= 50) card.style.background = '#d1fae5';
+    else if (aqi <= 100) card.style.background = '#fef9c3';
+    else if (aqi <= 150) card.style.background = '#fde68a';
+    else if (aqi <= 200) card.style.background = '#fca5a5';
+    else card.style.background = '#f87171';
+    // alert
+    if (aqi > 150) {
+      showAlert('⚠️ Unhealthy air: limit outdoor activity.','#fee2e2');
+    } else {
+      hideAlert();
+    }
   })
   .catch(err => {
     document.getElementById('aqi-value').textContent = 'N/A';
     document.getElementById('aqi-label').textContent = 'Error fetching data';
+    hideAlert();
   });
 }
 fetchAQI();
