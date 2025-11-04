@@ -5,90 +5,269 @@
 <title>El Paso Air Quality Monitor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-:root {
- --bg: #f9fafb;
- --card: #ffffff;
- --primary: #1d4ed8;
- --accent: #3b82f6;
- --text: #1e293b;
- --subtext: #64748b;
- --radius: 12px;
- --font: 'Inter', 'Segoe UI', sans-serif;
-}
-* {
- margin: 0;
- padding: 0;
- box-sizing: border-box;
-}
-body {
- background: var(--bg);
- font-family: var(--font);
- color: var(--text);
- text-align: center;
- padding: 2rem;
-}
-header {
- margin-bottom: 2rem;
-}
-header h1 {
- color: var(--primary);
- font-size: 2.5rem;
- font-weight: 700;
-}
-header p {
- color: var(--subtext);
- font-size: 1rem;
-}
-#aqi-card {
- background: var(--card);
- border-radius: var(--radius);
- box-shadow: 0 4px 12px rgba(0,0,0,0.05);
- padding: 2rem;
- max-width: 400px;
- margin: auto;
- transition: background 0.3s ease;
-}
-#aqi-value {
- font-size: 5rem;
- font-weight: 800;
-}
-#aqi-label {
- font-size: 1.25rem;
- margin-top: 0.5rem;
-}
-#last-updated {
- font-size: 0.875rem;
- color: var(--subtext);
- margin-top: 1rem;
-}
-#alert {
- display: none;
- padding: 1rem;
- margin-top: 1rem;
- border-radius: var(--radius);
-}
-footer {
- margin-top: 3rem;
- color: var(--subtext);
- font-size: 0.875rem;
-}
-footer a {
- color: var(--accent);
- text-decoration: none;
-}
-@media (max-width: 600px) {
- body { padding: 1rem; }
- header h1 { font-size: 1.75rem; }
- #aqi-value { font-size: 3.5rem; }
- #aqi-card { padding: 1.5rem; }
-}
+  /* Theme variables for light and dark modes */
+  :root {
+    --primary-color: #1d4ed8;
+    --background-color: #f9fafb;
+    --text-color: #1e293b;
+    --card-bg: #ffffff;
+    --accent-color: #3b82f6;
+    --subtext-color: #64748b;
+    --radius: 12px;
+    --font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+  body.dark {
+    --background-color: #0f172a;
+    --text-color: #e2e8f0;
+    --card-bg: #1e293b;
+    --accent-color: #60a5fa;
+    --subtext-color: #94a3b8;
+    --primary-color: #1e40af;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-family);
+    background: var(--background-color);
+    color: var(--text-color);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  /* Header and main AQI card styling */
+  header {
+    text-align: center;
+    padding: 1rem 0;
+  }
+  header h1 {
+    margin: 0 0 0.25rem 0;
+  }
+  header p {
+    margin: 0;
+    color: var(--subtext-color);
+    font-size: 1rem;
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+  }
+  #aqi-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+  }
+  #aqi-value {
+    font-size: 4rem;
+    font-weight: bold;
+  }
+  #aqi-label {
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+  }
+  #last-updated {
+    font-size: 0.875rem;
+    color: var(--subtext-color);
+    margin-top: 0.25rem;
+  }
+  #alert {
+    display: none;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: var(--radius);
+  }
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    color: var(--subtext-color);
+    font-size: 0.875rem;
+    padding-bottom: 2rem;
+  }
+  footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+
+  /* Toggle button */
+  .nav-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+
+  /* Sidebar container */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background: var(--card-bg);
+    padding: 1rem;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    transform: translateX(-250px);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar h2 {
+    margin-top: 0;
+  }
+
+  .nav-links { list-style: none; padding: 0; margin: 0; }
+  .nav-links li { margin-bottom: 0.5rem; }
+  .nav-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  .add-ons { margin-top: 1rem; }
+  .add-ons h3 { margin-bottom: 0.25rem; }
+
+  /* AQI legend colours (AirNow scale) */
+  .legend-box {
+    display: inline-block;
+    width: 1rem;
+    height: 0.75rem;
+    margin-right: 0.5rem;
+    border-radius: 2px;
+  }
+  .legend-box.good { background: #00e400; }
+  .legend-box.moderate { background: #ffff00; }
+  .legend-box.usg { background: #ff7e00; }
+  .legend-box.unhealthy { background: #ff0000; }
+  .legend-box.very-unhealthy { background: #8f3f97; }
+  .legend-box.hazardous { background: #7e0023; }
+
+  /* Dark‑mode toggle switch */
+  .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; width: 20px;
+    left: 2px; bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+  .switch input:checked + .slider { background-color: var(--primary-color); }
+  .switch input:checked + .slider:before { transform: translateX(26px); }
+
+  /* Gallery styling */
+  .gallery { padding: 2rem 1rem; }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .gallery-grid figure {
+    margin: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .gallery-grid img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .gallery-grid figcaption {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    .nav-toggle { top: 0.5rem; left: 0.5rem; }
+    .sidebar { width: 200px; transform: translateX(-200px); }
+    #aqi-card { padding: 1.5rem; }
+    #aqi-value { font-size: 3.5rem; }
+    header h1 { font-size: 1.75rem; }
+  }
 </style>
 </head>
 <body>
+<!-- Toggle button for the sidebar -->
+<button id="nav-toggle" aria-label="Open Navigation" class="nav-toggle">☰</button>
+
+<!-- Collapsible sidebar navigation -->
+<aside id="sidebar" class="sidebar" aria-label="Site Navigation">
+  <nav>
+    <h2>Navigation</h2>
+    <ul class="nav-links">
+      <!-- External resources -->
+      <li><a href="https://www.iqair.com/us/usa/texas/el-paso" target="_blank" rel="noopener">Local AQI Dashboard</a></li>
+      <li><a href="https://www.weather.gov/epz/" target="_blank" rel="noopener">NWS Weather (El&nbsp;Paso)</a></li>
+      <li><a href="https://www.airnow.gov/?city=El%20Paso&state=TX&country=USA" target="_blank" rel="noopener">AirNow – El&nbsp;Paso</a></li>
+      <!-- Internal anchors -->
+      <li><a href="#about">About Project</a></li>
+      <li><a href="#gallery">El&nbsp;Paso Gallery</a></li>
+      <li><a href="#contact">Contact / Feedback</a></li>
+      <li><a href="#credits">Credits & Data Sources</a></li>
+    </ul>
+    <hr />
+    <!-- Optional add‑ons -->
+    <div class="add-ons">
+      <!-- Current weather mini‑widget -->
+      <div class="current-weather">
+        <h3>Current Weather</h3>
+        <div id="weather-widget">Loading…</div>
+      </div>
+      <!-- Live AQI colour legend -->
+      <div class="aqi-legend">
+        <h3>AQI Legend</h3>
+        <ul>
+          <li><span class="legend-box good"></span> Good (0–50)</li>
+          <li><span class="legend-box moderate"></span> Moderate (51–100)</li>
+          <li><span class="legend-box usg"></span> USG (101–150)</li>
+          <li><span class="legend-box unhealthy"></span> Unhealthy (151–200)</li>
+          <li><span class="legend-box very-unhealthy"></span> Very Unhealthy (201–300)</li>
+          <li><span class="legend-box hazardous"></span> Hazardous (301+)</li>
+        </ul>
+      </div>
+      <!-- Dark/light mode toggle -->
+      <div class="mode-toggle">
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle" aria-label="Toggle dark or light mode">
+          <span class="slider"></span>
+        </label>
+        <span>&nbsp;Dark Mode</span>
+      </div>
+    </div>
+  </nav>
+</aside>
+
 <header>
-  <h1>El Paso Air Quality Monitor</h1>
+  <h1>El&nbsp;Paso Air&nbsp;Quality Monitor</h1>
   <p>Real‑time AQI updates</p>
 </header>
+
 <main role="main" aria-live="polite">
   <div id="aqi-card">
     <div id="aqi-value">--</div>
@@ -97,58 +276,156 @@ footer a {
   </div>
   <div id="alert"></div>
 </main>
-<footer>
-  Data source: <a href="https://waqi.info/" target="_blank">WAQI</a><br>
-  © 2025 ClearAir El Paso Project
+
+<!-- About section -->
+<section id="about" class="content-section">
+  <h2>About This Project</h2>
+  <p>
+    The El&nbsp;Paso Air&nbsp;Quality Monitor is a community‑driven project to provide real‑time air quality information for residents of the border region. It fetches live AQI data from the World Air Quality Index and displays it in a simple, mobile‑friendly interface. The sidebar links point to authoritative resources such as NOAA and AirNow for further information.
+  </p>
+</section>
+
+<!-- Responsive image gallery -->
+<section id="gallery" class="content-section gallery">
+  <h2>El&nbsp;Paso Gallery</h2>
+  <div class="gallery-grid">
+    <!-- Replace these example images with your own photos in an /images/ folder -->
+    <figure>
+      <img src="images/franklin-mountains.jpg" alt="Sunset over the Franklin Mountains">
+      <figcaption>Sunset over the Franklin Mountains</figcaption>
+    </figure>
+    <figure>
+      <img src="images/rio-grande.jpg" alt="Rio Grande near El&nbsp;Paso">
+      <figcaption>Rio Grande near El&nbsp;Paso</figcaption>
+    </figure>
+    <figure>
+      <img src="images/downtown-elpaso.jpg" alt="Downtown El&nbsp;Paso skyline">
+      <figcaption>Downtown El&nbsp;Paso skyline</figcaption>
+    </figure>
+    <!-- Add more <figure> elements as needed -->
+  </div>
+</section>
+
+<!-- Contact / feedback -->
+<section id="contact" class="content-section">
+  <h2>Contact / Feedback</h2>
+  <p>
+    We welcome your feedback and collaboration. Please email us at
+    <a href="mailto:contact@example.com">contact@example.com</a> or fill out our
+    <a href="https://forms.gle/your-feedback-form" target="_blank" rel="noopener">feedback form</a>.
+  </p>
+</section>
+
+<!-- Credits & data sources -->
+<footer id="credits">
+  <h2>Credits & Data Sources</h2>
+  <p>
+    Data sources include the <a href="https://waqi.info/" target="_blank" rel="noopener">World Air Quality Index</a>,
+    the <a href="https://www.weather.gov/epz/" target="_blank" rel="noopener">National Weather Service</a>,
+    <a href="https://www.iqair.com/us/usa/texas/el-paso" target="_blank" rel="noopener">IQAir</a> and
+    <a href="https://www.airnow.gov/" target="_blank" rel="noopener">AirNow</a>.
+  </p>
+  <p>&copy; 2025 ClearAir El&nbsp;Paso Project</p>
 </footer>
+
 <script>
-function showAlert(msg,color) {
-  const alertDiv = document.getElementById('alert');
-  alertDiv.textContent = msg;
-  alertDiv.style.display = 'block';
-  alertDiv.style.background = color;
-}
-function hideAlert() {
-  document.getElementById('alert').style.display = 'none';
-}
-function fetchAQI() {
- fetch('https://api.waqi.info/feed/el%20paso/?token=demo')
-  .then(response => response.json())
-  .then(data => {
-    var aqi = data.data.aqi;
-    var category = '';
-    if (aqi <= 50) category = 'Good';
-    else if (aqi <= 100) category = 'Moderate';
-    else if (aqi <= 150) category = 'Unhealthy for Sensitive Groups';
-    else if (aqi <= 200) category = 'Unhealthy';
-    else if (aqi <= 300) category = 'Very Unhealthy';
-    else category = 'Hazardous';
-    document.getElementById('aqi-value').textContent = aqi;
-    document.getElementById('aqi-label').textContent = category;
-    var now = new Date();
-    document.getElementById('last-updated').textContent = 'Last updated: ' + now.toLocaleString();
-    // color code card
-    const card = document.getElementById('aqi-card');
-    if (aqi <= 50) card.style.background = '#d1fae5';
-    else if (aqi <= 100) card.style.background = '#fef9c3';
-    else if (aqi <= 150) card.style.background = '#fde68a';
-    else if (aqi <= 200) card.style.background = '#fca5a5';
-    else card.style.background = '#f87171';
-    // alert
-    if (aqi > 150) {
-      showAlert('⚠️ Unhealthy air: limit outdoor activity.','#fee2e2');
-    } else {
-      hideAlert();
-    }
-  })
-  .catch(err => {
-    document.getElementById('aqi-value').textContent = 'N/A';
-    document.getElementById('aqi-label').textContent = 'Error fetching data';
-    hideAlert();
+  // Sidebar toggle handler – toggles the 'open' class on the sidebar
+  document.getElementById('nav-toggle').addEventListener('click', function () {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
   });
-}
-fetchAQI();
-setInterval(fetchAQI, 15 * 60 * 1000);
+
+  // Dark/light mode handler – toggles 'dark' class on body and stores preference
+  const themeToggle = document.getElementById('theme-toggle');
+  themeToggle.addEventListener('change', function () {
+    document.body.classList.toggle('dark', this.checked);
+    if (this.checked) {
+      localStorage.setItem('theme', 'dark');
+    } else {
+      localStorage.removeItem('theme');
+    }
+  });
+
+  // On load, apply saved theme preference
+  (function () {
+    const prefersDark = localStorage.getItem('theme') === 'dark';
+    if (prefersDark) {
+      document.body.classList.add('dark');
+      document.getElementById('theme-toggle').checked = true;
+    }
+  })();
+
+  // Simple weather widget using the open‑meteo API (no key required)
+  async function fetchWeather() {
+    try {
+      // Coordinates for El Paso (31.77° N, 106.43° W); returns temp and wind
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=31.77&longitude=-106.43&current_weather=true');
+      const data = await res.json();
+      const temp = data.current_weather.temperature;
+      const wind = data.current_weather.windspeed;
+      document.getElementById('weather-widget').textContent =
+        temp + '°C, wind ' + wind + ' km/h';
+    } catch (err) {
+      document.getElementById('weather-widget').textContent = 'Weather data unavailable';
+    }
+  }
+  fetchWeather();
+
+  // Alert handling functions
+  function showAlert(message, bg) {
+    const alertBox = document.getElementById('alert');
+    alertBox.textContent = message;
+    alertBox.style.display = 'block';
+    alertBox.style.background = bg;
+  }
+  function hideAlert() {
+    const alertBox = document.getElementById('alert');
+    alertBox.style.display = 'none';
+  }
+
+  // Fetch AQI data from WAQI and update UI
+  function fetchAQI() {
+    fetch('https://api.waqi.info/feed/el%20paso/?token=demo')
+      .then(response => response.json())
+      .then(data => {
+        var aqi = data.data.aqi;
+        var category = '';
+        if (aqi <= 50) category = 'Good';
+        else if (aqi <= 100) category = 'Moderate';
+        else if (aqi <= 150) category = 'Unhealthy for Sensitive Groups';
+        else if (aqi <= 200) category = 'Unhealthy';
+        else if (aqi <= 300) category = 'Very Unhealthy';
+        else category = 'Hazardous';
+
+        document.getElementById('aqi-value').textContent = aqi;
+        document.getElementById('aqi-label').textContent = category;
+        var now = new Date();
+        document.getElementById('last-updated').textContent =
+          'Last updated: ' + now.toLocaleString();
+
+        // Color code card
+        const card = document.getElementById('aqi-card');
+        if (aqi <= 50) card.style.background = '#d1fae5';
+        else if (aqi <= 100) card.style.background = '#fef9c3';
+        else if (aqi <= 150) card.style.background = '#fde68a';
+        else if (aqi <= 200) card.style.background = '#fca5a5';
+        else card.style.background = '#f87171';
+
+        // alert
+        if (aqi > 150) {
+          showAlert('⚠️ Unhealthy air: limit outdoor activity.', '#fee2e2');
+        } else {
+          hideAlert();
+        }
+      })
+      .catch(err => {
+        document.getElementById('aqi-value').textContent = 'N/A';
+        document.getElementById('aqi-label').textContent = 'Error fetching data';
+        hideAlert();
+      });
+  }
+  fetchAQI();
+  setInterval(fetchAQI, 15 * 60 * 1000);
 </script>
 </body>
 </html>
