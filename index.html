@@ -210,6 +210,22 @@
     #aqi-value { font-size: 3.5rem; }
     header h1 { font-size: 1.75rem; }
   }
+ /* Override sidebar to fully hide when closed */
+  .sidebar {
+    width: 0;
+    padding: 0;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    width: 250px;
+    padding: 1rem;
+    transform: translateX(0);
+  }
+  @media (max-width: 600px) {
+    .sidebar.open {
+      width: 200px;
+    }
+  }
 </style>
 </head>
 <body>
